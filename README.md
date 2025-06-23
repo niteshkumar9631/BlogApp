@@ -26,7 +26,24 @@ A simple and modern Blog Application where users can read, write, and manage blo
 - **Other Tools**: Mongoose, JWT, dotenv, Postman  
 
 ---
-
+# 📝 Project Setup
+- Node.js and npm installed
+- MongoDB instance ( local or cloud-based)
+---
+# Environment Variables (.env) 
+- Create a folder backend/config/config.env and add the following variables:
+```
+PORT=4000
+MONGO_URI=
+JWT_SECRET_KEY=
+JWT_EXPIRES=7d
+COOKIE_EXPIRE=7
+CLOUDINARY_CLIENT_NAME=
+CLOUDINARY_CLIENT_API=
+CLOUDINARY_CLIENT_SECRET=
+FRONTEND_URL=http://localhost:5173
+```
+---
 ## 📦 Installation
 
 ```bash
@@ -63,11 +80,11 @@ npm run dev
 ![image](https://github.com/user-attachments/assets/fb5a2db1-104c-44ae-9fbb-92ea59230732)
 
 # 🙋‍♂️ Author
-Nitesh Kumar
-GitHub: @niteshkumar9631
+- Nitesh Kumar
+- GitHub: @niteshkumar9631
 
 📄 License
-This project is licensed under the MIT License.
+- This project is licensed under the MIT License.
 
 
 
