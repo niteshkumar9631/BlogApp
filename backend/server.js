@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import app from "./app.js";
 import cloudinary from "cloudinary";
+import app from "./app.js";
 
-// Load env
-dotenv.config();
+// Load environment variables
+dotenv.config({ path: "./config/config.env" });
 
 // MongoDB connection
 const mongoURI = process.env.MONGO_URI;
@@ -15,11 +15,17 @@ if (!mongoURI) {
 }
 
 mongoose
-  .connect(mongoURI)
+  .connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("✅ Connected to MongoDB"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+    process.exit(1);
+  });
 
-// Cloudinary config
+// Cloudinary configuration
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLIENT_NAME,
   api_key: process.env.CLOUDINARY_CLIENT_API,
@@ -29,5 +35,5 @@ cloudinary.v2.config({
 // Start server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });
