@@ -29,7 +29,7 @@ const Chart = () => {
   useEffect(() => {
     const fetchMyBlogs = async () => {
       const { data } = await axios.get(
-        "http://localhost:4000/api/v1/blog/myblogs",
+        `${import.meta.env.VITE_API_URL}/blog/myblogs`,
         { withCredentials: true }
       );
       setMyBlogs(data.blogs);

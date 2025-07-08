@@ -29,7 +29,7 @@ const UpdateBlog = () => {
     const fetchBlog = async () => {
       try {
         const { data } = await axios.get(
-          `http://localhost:4000/api/v1/blog/singleblog/${id}`,
+          `${import.meta.env.VITE_API_URL}/blog/singleblog/${id}`,
           { withCredentials: true }
         );
         setTitle(data.blog.title);
@@ -105,8 +105,7 @@ const UpdateBlog = () => {
 
     try {
       const { data } = await axios.put(
-        `http://localhost:4000/api/v1/blog/update/${id}`,
-        updatedBlog,
+         `${import.meta.env.VITE_API_URL}/blog/update/${id}`,
         { withCredentials: true }
       );
       toast.success(data.message);

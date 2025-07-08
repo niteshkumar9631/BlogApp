@@ -97,7 +97,7 @@ const CreateBlog = () => {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:4000/api/v1/blog/post",
+         `${import.meta.env.VITE_API_URL}/blog/post`,
         formData,
         {
           withCredentials: true,

@@ -1,50 +1,59 @@
-  import express from "express";
-  import dotenv from "dotenv";
-  import cors from "cors";
-  import cookieParser from "cookie-parser";
-  import { dbConnection } from "./database/dbConnection.js";
-  import { errorMiddleware } from "./middlewares/error.js";
-  import userRouter from "./routes/userRouter.js";
-  import blogRouter from "./routes/blogRouter.js";
-  import fileUpload from "express-fileupload";
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import fileUpload from "express-fileupload";
 
-  // Initialize app and load environment variables
-  const app = express();
-  dotenv.config({ path: "./config/config.env" });
+import { dbConnection } from "./database/dbConnection.js";
+import { errorMiddleware } from "./middlewares/error.js";
+import userRouter from "./routes/userRouter.js";
+import blogRouter from "./routes/blogRouter.js";
 
-  // Enable CORS
-  app.use(
-    cors({
-      origin: [process.env.FRONTEND_URL],
-      methods: ["GET", "PUT", "DELETE", "POST"],
-      credentials: true,
-    })
-  );
+// Initialize app
+const app = express();
 
-  // Middlewares
-  app.use(cookieParser());
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-  app.use(
-    fileUpload({
-      useTempFiles: true,
-      tempFileDir: "/tmp/",
-    })
-  );
+// Load environment variables
+dotenv.config({ path: "./config/config.env" });
 
-  // Routes
-  app.use("/api/v1/user", userRouter);
-  app.use("/api/v1/blog", blogRouter);
+// Connect to database
+dbConnection();
 
-  // Default root route
-  app.get("/", (req, res) => {
-    res.send("Welcome to the Blogging API ");
-  });
+// ✅ CORS Middleware — allow frontend Vercel + local
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://blog-app-frontend-murex-three.vercel.app",
+];
 
-  // Connect to database
-  dbConnection();
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  })
+);
 
-  // Error handler middleware (must be last)
-  app.use(errorMiddleware);
+// Middleware
+app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(fileUpload({ useTempFiles: true, tempFileDir: "/tmp/" }));
 
-  export default app;
+// Routes
+app.use("/api/v1/user", userRouter);
+app.use("/api/v1/blog", blogRouter);
+
+// Test Route
+app.get("/", (req, res) => {
+  res.send("Welcome to the Blogging API 🚀");
+});
+
+// Error handler
+app.use(errorMiddleware);
+
+export default app;

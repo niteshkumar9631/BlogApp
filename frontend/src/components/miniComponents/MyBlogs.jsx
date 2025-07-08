@@ -10,7 +10,7 @@ const MyBlogs = () => {
   useEffect(() => {
     const fetchMyBlogs = async () => {
       const { data } = await axios.get(
-        "http://localhost:4000/api/v1/blog/myblogs",
+        `${import.meta.env.VITE_API_URL}/blog/myblogs`,
         { withCredentials: true }
       );
       setMyBlogs(data.blogs);
@@ -20,7 +20,7 @@ const MyBlogs = () => {
 
   const deleteBlogHandler = async (id) => {
     await axios
-      .delete(`http://localhost:4000/api/v1/blog/delete/${id}`, {
+      .delete(`${import.meta.env.VITE_API_URL}/blog/delete/${id}`, {
         withCredentials: true,
       })
       .then((res) => {

@@ -1,23 +1,29 @@
-class ErrorHandler extends Error {
-  constructor(message, statusCode) {
-    super(message);
-    this.statusCode = statusCode;
+import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
+import { User } from "../models/userSchema.js";
+import ErrorHandler from "../middlewares/error.js";
+import jwt from "jsonwebtoken";
+
+// AUTHENTICATION
+export const isAuthenticated = catchAsyncErrors(async (req, res, next) => {
+  const { token } = req.cookies;
+  if (!token) {
+    return next(new ErrorHandler("User is not authenticated!", 400));
   }
-}
+  const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  req.user = await User.findById(decoded.id);
+  next();
+});
 
-export const errorMiddleware = (err, req, res, next) => {
-  err.message = err.message || "Internal Server Error";
-  err.statusCode = err.statusCode || 500;
-
-  if (err.name === "CastError") {
-    const message = `Invalid: Resource not found: ${err.path}`;
-    err = new ErrorHandler(message, 404);
-  }
-
-  return res.status(err.statusCode).json({
-    success: false,
-    message: err.message,
-  });
+// AUTHORIZATION
+export const isAuthorized = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new ErrorHandler(
+          `User with this role(${req.user.role}) not allowed to access this resource`
+        )
+      );
+    }
+    next();
+  };
 };
-
-export default ErrorHandler;

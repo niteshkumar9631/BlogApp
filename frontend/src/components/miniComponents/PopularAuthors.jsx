@@ -7,7 +7,7 @@ const PopularAuthors = () => {
   useEffect(() => {
     const fetchAuthors = async () => {
       const { data } = await axios.get(
-        "http://localhost:4000/api/v1/user/authors",
+       `${import.meta.env.VITE_API_URL}/user/authors`,
         { withCredentials: true }
       );
       setAuthors(data.authors);

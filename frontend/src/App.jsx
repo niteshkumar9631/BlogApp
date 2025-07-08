@@ -17,13 +17,13 @@ import axios from "axios";
 import UpdateBlog from "./components/pages/UpdateBlog";
 
 const App = () => {
-  const { setUser, isAuthenticated, setIsAuthenticated, user, setBlogs } =
-    useContext(Context);
+  const { setUser, isAuthenticated, setIsAuthenticated, user, setBlogs } = useContext(Context);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const { data } = await axios.get(
-          "http://localhost:4000/api/v1/user/myprofile",
+          `${import.meta.env.VITE_API_URL}/user/myprofile`,
           {
             withCredentials: true,
           }
@@ -31,25 +31,31 @@ const App = () => {
         setUser(data.user);
         setIsAuthenticated(true);
       } catch (error) {
-        console.log(error);
+        console.error("Error fetching user:", error);
         setIsAuthenticated(false);
         setUser({});
       }
     };
+
     const fetchBlogs = async () => {
       try {
         const { data } = await axios.get(
-          "http://localhost:4000/api/v1/blog/all",
-          { withCredentials: true }
+          `${import.meta.env.VITE_API_URL}/blog/all`,
+          {
+            withCredentials: true,
+          }
         );
         setBlogs(data.allBlogs);
       } catch (error) {
+        console.error("Error fetching blogs:", error);
         setBlogs([]);
       }
     };
+
     fetchUser();
     fetchBlogs();
-  }, [isAuthenticated, user]);
+  }, []);
+
   return (
     <>
       <BrowserRouter>

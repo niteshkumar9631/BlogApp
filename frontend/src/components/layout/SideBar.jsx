@@ -17,7 +17,7 @@ const SideBar = ({ setComponent }) => {
     e.preventDefault();
     try {
       const { data } = await axios.get(
-        "http://localhost:4000/api/v1/user/logout",
+       `${import.meta.env.VITE_API_URL}/user/logout`,
         { withCredentials: true }
       );
       setIsAuthenticated(false);
