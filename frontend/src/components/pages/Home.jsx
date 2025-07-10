@@ -16,18 +16,26 @@ const Home = () => {
     const fetchBlogs = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/blog/all`, {
-          withCredentials: true, // Include cookies if using authentication
+          withCredentials: true, // Include cookies for auth
         });
-        setBlogs(response.data.blogs);
+
+        // ✅ Ensure blogs is always an array
+        const fetchedBlogs = Array.isArray(response.data.blogs)
+          ? response.data.blogs
+          : [];
+
+        setBlogs(fetchedBlogs);
       } catch (error) {
-        console.error("Error fetching blogs:", error);
+        console.error("❌ Error fetching blogs:", error);
+        setBlogs([]); // fallback to empty array to avoid crash
       }
     };
 
     fetchBlogs();
   }, []);
 
-  const filteredBlogs = blogs.slice(0, 6);
+  // ✅ Safe slicing
+  const filteredBlogs = Array.isArray(blogs) ? blogs.slice(0, 6) : [];
 
   return (
     <article className={mode === "dark" ? "dark-bg" : "light-bg"}>

@@ -8,20 +8,26 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
-  const { mode, isAuthenticated } = useContext(Context);
+
+  const {
+    mode,
+    isAuthenticated,
+    setUser,
+    setIsAuthenticated,
+  } = useContext(Context);
+
   const navigateTo = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    // ✅ Basic Validation
     if (!email || !password || !role) {
       return toast.error("All fields are required.");
     }
 
     try {
       const { data } = await axios.post(
-       `${import.meta.env.VITE_API_URL}/user/login`,
+        `${import.meta.env.VITE_API_URL}/user/login`,
         { email, password, role },
         {
           withCredentials: true,
@@ -33,21 +39,24 @@ const Login = () => {
 
       toast.success(data.message);
 
-      // ✅ Reset input fields
+      // ✅ Update global context
+      setUser(data.user);
+      setIsAuthenticated(true);
+
+      // ✅ Reset inputs
       setEmail("");
       setPassword("");
       setRole("");
 
-      // ✅ Redirect to homepage
+      // ✅ Redirect to home
       navigateTo("/");
     } catch (error) {
       toast.error(error.response?.data?.message || "Login failed");
     }
   };
 
-  // ✅ If already logged in, redirect
   if (isAuthenticated) {
-    return <Navigate to={"/"} />;
+    return <Navigate to="/" />;
   }
 
   return (
