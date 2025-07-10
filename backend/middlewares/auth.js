@@ -1,40 +1,43 @@
-import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
+// middlewares/auth.js
+
+import { catchAsyncErrors } from "./catchAsyncErrors.js";
 import { User } from "../models/userSchema.js";
-import ErrorHandler from "../middlewares/error.js";
+import ErrorHandler from "./error.js";
 import jwt from "jsonwebtoken";
 
-// ✅ AUTHENTICATION Middleware
+// ✅ Authentication Middleware
 export const isAuthenticated = catchAsyncErrors(async (req, res, next) => {
-  // Log cookies to debug if needed
-  // console.log("Received cookies:", req.cookies);
-
   const { token } = req.cookies;
 
-  if (!token) {
-    return next(new ErrorHandler("User is not authenticated!", 400));
+  if (!token || token.trim() === "") {
+    return next(new ErrorHandler("User is not authenticated!", 401));
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    req.user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id).lean();
 
-    if (!req.user) {
+    if (!user) {
       return next(new ErrorHandler("User not found!", 404));
     }
 
+    req.user = user;
     next();
   } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return next(new ErrorHandler("Session expired. Please login again.", 401));
+    }
     return next(new ErrorHandler("Invalid or expired token!", 401));
   }
 });
 
-// ✅ AUTHORIZATION Middleware
+// ✅ Authorization Middleware
 export const isAuthorized = (...roles) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
       return next(
         new ErrorHandler(
-          `User with role (${req.user?.role || "unknown"}) is not allowed to access this resource.`,
+          `Role (${req.user?.role || "unknown"}) is not allowed to access this resource.`,
           403
         )
       );

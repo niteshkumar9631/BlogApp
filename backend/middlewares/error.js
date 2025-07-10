@@ -1,64 +1,51 @@
-import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
-import { User } from "../models/userSchema.js";
-import ErrorHandler from "../middlewares/error.js";
-import jwt from "jsonwebtoken";
+// middlewares/error.js
 
-/**
- * Authentication Middleware
- * Verifies JWT token from cookies and attaches user info to the request object.
- */
-export const isAuthenticated = catchAsyncErrors(async (req, res, next) => {
-  const { token } = req.cookies;
+// Custom Error Handler Class
+class ErrorHandler extends Error {
+  constructor(message, statusCode) {
+    super(message);
+    this.statusCode = statusCode;
 
-  // Check if token exists and is not empty
-  if (!token || token.trim() === "") {
-    return next(new ErrorHandler("User is not authenticated!", 401));
+    // Capture full stack trace (for debugging)
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+// Global Error Middleware
+export const errorMiddleware = (err, req, res, next) => {
+  // Default status and message
+  let statusCode = err.statusCode || 500;
+  let message = err.message || "Internal Server Error";
+
+  // 🔍 Handle Mongoose Validation Error
+  if (err.name === "ValidationError") {
+    message = Object.values(err.errors).map((val) => val.message).join(", ");
+    statusCode = 400;
   }
 
-  try {
-    // Decode the token using the secret key
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-
-    // Fetch user by ID and return lean object for performance
-    const user = await User.findById(decoded.id).lean();
-
-    if (!user) {
-      return next(new ErrorHandler("User not found with this token!", 404));
-    }
-
-    req.user = user; // Attach user to request object
-    next();
-  } catch (error) {
-    // Optional: differentiate token errors
-    if (error.name === "TokenExpiredError") {
-      return next(new ErrorHandler("Session expired. Please login again.", 401));
-    }
-
-    return next(new ErrorHandler("Invalid or expired token!", 401));
+  // 🔍 Handle Mongoose CastError (invalid _id)
+  if (err.name === "CastError") {
+    message = `Resource not found. Invalid: ${err.path}`;
+    statusCode = 400;
   }
-});
 
-/**
- * Authorization Middleware
- * Restricts access to certain roles.
- * @param  {...string} roles - Roles allowed to access the route
- */
-export const isAuthorized = (...roles) => {
-  return (req, res, next) => {
-    // Ensure isAuthenticated middleware ran before this
-    if (!req.user || !req.user.role) {
-      return next(new ErrorHandler("User information is missing for authorization!", 403));
-    }
+  // 🔍 Handle MongoDB Duplicate Key Error
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyValue)[0];
+    message = `Duplicate value entered for field: ${field}`;
+    statusCode = 409;
+  }
 
-    if (!roles.includes(req.user.role)) {
-      return next(
-        new ErrorHandler(
-          `Role (${req.user.role}) is not allowed to access this resource.`,
-          403
-        )
-      );
-    }
-
-    next();
-  };
+  // Final error response
+  res.status(statusCode).json({
+    success: false,
+    error: {
+      message,
+      statusCode,
+      // Only show stack trace in development
+      ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+    },
+  });
 };
+
+export default ErrorHandler;
