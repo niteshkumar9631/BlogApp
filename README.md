@@ -4,7 +4,7 @@ A simple and modern Blog Application where users can read, write, and manage blo
 
 ## 🔗 Live Demo
 
-[Click here to view live project](https://your-live-link.com)
+https://blog-app-frontend-murex-three.vercel.app/
 
 ---
 
